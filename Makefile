@@ -1,5 +1,7 @@
 .PHONY: all fast update lint typecheck clean
 
+PYTHON_VERSION ?=
+
 all: update lint typecheck clean
 
 fast: lint typecheck clean
@@ -11,7 +13,7 @@ update:
 	curl -sSfL -z Makefile https://raw.githubusercontent.com/danrneal/python-tools/main/Makefile -o Makefile
 	@echo "==> Installing latest CLI tools..."
 	@if command -v uv >/dev/null 2>&1; then \
-		uv self update; \
+		uv self update 2>/dev/null || (command -v pipx >/dev/null 2>&1 && pipx upgrade uv) || true; \
 	else \
 		curl -LsSf https://astral.sh/uv/install.sh | sh; \
 	fi
@@ -21,7 +23,15 @@ update:
 	uv tool upgrade pyrefly
 	@if [ -f pyproject.toml ]; then \
 		echo "==> Upgrading Python and dependencies..."; \
-		uv python install; \
+		PY_VER="$(PYTHON_VERSION)"; \
+		if [ -z "$$PY_VER" ]; then \
+			PY_VER=$$(uv python list --only-downloads --output-format json cpython | jq -r '[.[] | select(.variant == "default" and (.version | test("^[0-9]+\\.[0-9]+\\.[0-9]+$$")))][0] | "\(.version_parts.major).\(.version_parts.minor)"'); \
+		fi; \
+		echo "==> Targeting Python $$PY_VER..."; \
+		uv python install "$$PY_VER"; \
+		uv python upgrade "$$PY_VER"; \
+		uv python pin "$$PY_VER"; \
+		python3 -c 'import pathlib, re, sys; p = pathlib.Path("pyproject.toml"); p.write_text(re.sub(r"(?m)^requires-python\s*=\s*\"[^\"]*\"", f"requires-python = \">={sys.argv[1]}\"", p.read_text()))' "$$PY_VER"; \
 		uv sync --upgrade; \
 	fi
 
