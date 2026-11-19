@@ -27,6 +27,8 @@ To use these tools and configurations in a new repository, you only need to copy
    make fast
    ```
 
+4. If your tests `import pytest`, add `pytest>=9.0` under `[dependency-groups] dev` in `pyproject.toml` so `pyrefly` can resolve the import in `.venv`.
+
 ## License
 
 python-tools is licensed under the [MIT License](LICENSE).
