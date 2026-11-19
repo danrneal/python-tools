@@ -1,15 +1,17 @@
-.PHONY: all fast update lint typecheck clean
+.PHONY: all fast update lint typecheck test clean
 
 PYTHON_VERSION ?=
 
-all: update lint typecheck clean
+all: update lint typecheck test clean
 
-fast: lint typecheck clean
+fast: lint typecheck test clean
 
 update:
 	@echo "==> Updating tooling configurations from danrneal/python-tools..."
 	curl -sSfL -z ruff.toml https://raw.githubusercontent.com/danrneal/python-tools/main/ruff.toml -o ruff.toml
 	curl -sSfL -z pyrefly.toml https://raw.githubusercontent.com/danrneal/python-tools/main/pyrefly.toml -o pyrefly.toml
+	curl -sSfL -z pytest.toml https://raw.githubusercontent.com/danrneal/python-tools/main/pytest.toml -o pytest.toml
+	curl -sSfL -z .coveragerc.toml https://raw.githubusercontent.com/danrneal/python-tools/main/.coveragerc.toml -o .coveragerc.toml
 	curl -sSfL -z Makefile https://raw.githubusercontent.com/danrneal/python-tools/main/Makefile -o Makefile
 	@echo "==> Installing latest CLI tools..."
 	@if command -v uv >/dev/null 2>&1; then \
@@ -21,6 +23,8 @@ update:
 	uv tool upgrade ruff
 	uv tool install pyrefly
 	uv tool upgrade pyrefly
+	uv tool install diff-cover
+	uv tool upgrade diff-cover
 	@if [ -f pyproject.toml ]; then \
 		echo "==> Upgrading Python and dependencies..."; \
 		PY_VER="$(PYTHON_VERSION)"; \
@@ -45,6 +49,38 @@ typecheck:
 	@echo "==> Running pyrefly..."
 	pyrefly check
 
+test:
+	@if [ -f pyproject.toml ]; then \
+		echo "==> Running pytest with coverage..."; \
+		uv run \
+			--with pytest \
+			--with pytest-cov \
+			--with pytest-randomly \
+			--with pytest-socket \
+			--with pytest-timeout \
+			--with pytest-xdist \
+			pytest \
+				-n auto \
+				--timeout=60 \
+				--disable-socket \
+				--allow-unix-socket \
+				--allow-hosts=127.0.0.1,::1,localhost \
+				--cov=. \
+				--cov-report=term-missing \
+				--cov-report=xml \
+				--cov-report=html:$(HOME)/Downloads/htmlcov; \
+		if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then \
+			BASE_BRANCH="origin/main"; \
+			if ! git rev-parse --verify "$$BASE_BRANCH" >/dev/null 2>&1; then \
+				BASE_BRANCH="HEAD"; \
+			fi; \
+			if git rev-parse --verify "$$BASE_BRANCH" >/dev/null 2>&1; then \
+				echo "==> Checking coverage diff against $$BASE_BRANCH..."; \
+				diff-cover coverage.xml --compare-branch="$$BASE_BRANCH" --include-untracked; \
+			fi; \
+		fi; \
+	fi
+
 clean:
 	@echo "==> Cleaning up artifacts..."
-	rm -rf .coverage coverage.xml htmlcov
+	rm -rf .coverage .coverage.* coverage.xml
