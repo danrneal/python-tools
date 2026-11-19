@@ -4,9 +4,9 @@ A collection of custom Python development and testing tools to improve productiv
 
 ## Features & Tools
 
-### 1. `Makefile` & `ruff.toml`
+### 1. `Makefile`, `ruff.toml`, & `pyrefly.toml`
 
-This repository provides a centralized `Makefile` and `ruff.toml` configuration. The `Makefile` orchestrates fetching the latest configurations, installing and upgrading CLI tools with `uv`, formatting code, and running lint checks with `ruff`.
+This repository provides a centralized `Makefile`, `ruff.toml`, and `pyrefly.toml` configuration. The `Makefile` orchestrates fetching the latest configurations, installing and upgrading CLI tools with `uv`, formatting and linting code with `ruff`, and type checking with `pyrefly`.
 
 ## Setup & Usage
 
