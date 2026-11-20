@@ -1,8 +1,8 @@
-.PHONY: all fast update lint typecheck test clean
+.PHONY: all fast update lint typecheck test mutate clean
 
 PYTHON_VERSION ?=
 
-all: update lint typecheck test clean
+all: update lint typecheck test mutate clean
 
 fast: lint typecheck test clean
 
@@ -12,6 +12,7 @@ update:
 	curl -sSfL -z pyrefly.toml https://raw.githubusercontent.com/danrneal/python-tools/main/pyrefly.toml -o pyrefly.toml
 	curl -sSfL -z pytest.toml https://raw.githubusercontent.com/danrneal/python-tools/main/pytest.toml -o pytest.toml
 	curl -sSfL -z .coveragerc.toml https://raw.githubusercontent.com/danrneal/python-tools/main/.coveragerc.toml -o .coveragerc.toml
+	curl -sSfL -z setup.cfg https://raw.githubusercontent.com/danrneal/python-tools/main/setup.cfg -o setup.cfg
 	curl -sSfL -z Makefile https://raw.githubusercontent.com/danrneal/python-tools/main/Makefile -o Makefile
 	@echo "==> Installing latest CLI tools..."
 	@if command -v uv >/dev/null 2>&1; then \
@@ -79,6 +80,19 @@ test:
 				diff-cover coverage.xml --compare-branch="$$BASE_BRANCH" --include-untracked; \
 			fi; \
 		fi; \
+	fi
+
+mutate:
+	@if [ -f pyproject.toml ]; then \
+		echo "==> Running mutmut..."; \
+		uv run \
+			--with mutmut \
+			--with pytest \
+			--with pytest-socket \
+			mutmut run; \
+		uv run \
+			--with mutmut \
+			mutmut results; \
 	fi
 
 clean:

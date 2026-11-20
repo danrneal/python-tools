@@ -1,9 +1,10 @@
 [tool.coverage.run]
 branch = true
 omit = [
-    "tests/*",
-    "**/test_*.py",
     "**/*_test.py",
+    "**/test_*.py",
+    "mutants/*",
+    "tests/*",
 ]
 
 [tool.coverage.report]

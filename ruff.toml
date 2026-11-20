@@ -1,5 +1,6 @@
-line-length = 80
+extend-exclude = ["mutants"]
 indent-width = 4
+line-length = 80
 
 [lint]
 select = ["ALL"]

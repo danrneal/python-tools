@@ -79,6 +79,9 @@ poetry.toml
 .ruff_cache/
 pyrightconfig.json
 
+# Project Specific
+mutants/
+
 # Documentation (Allow README only)
 *.md
 !README.md

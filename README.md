@@ -4,9 +4,9 @@ A collection of custom Python development and testing tools to improve productiv
 
 ## Features & Tools
 
-### 1. `Makefile`, `ruff.toml`, `pyrefly.toml`, `pytest.toml`, & `.coveragerc.toml`
+### 1. `Makefile`, `ruff.toml`, `pyrefly.toml`, `pytest.toml`, `.coveragerc.toml`, & `setup.cfg`
 
-This repository provides centralized `Makefile`, `ruff.toml`, `pyrefly.toml`, `pytest.toml`, and `.coveragerc.toml` configurations. The `Makefile` orchestrates fetching the latest configurations, installing and upgrading CLI tools with `uv`, formatting and linting code with `ruff`, type checking with `pyrefly`, and running tests with `pytest`, branch coverage (`pytest-cov` / `coverage.py`), and `diff-cover`.
+This repository provides centralized `Makefile`, `ruff.toml`, `pyrefly.toml`, `pytest.toml`, `.coveragerc.toml`, and `setup.cfg` configurations. The `Makefile` orchestrates fetching the latest configurations, installing and upgrading CLI tools with `uv`, formatting and linting code with `ruff`, type checking with `pyrefly`, running tests with `pytest`, branch coverage (`pytest-cov` / `coverage.py`), and `diff-cover`, and running mutation testing with `mutmut`.
 
 ## Setup & Usage
 
@@ -22,12 +22,17 @@ To use these tools and configurations in a new repository, you only need to copy
    make all
    ```
 
-3. For faster development cycles (skipping tool and config updates), use:
+3. For faster development cycles (skipping tool/config updates and mutation testing), use:
    ```sh
    make fast
    ```
 
-4. If your tests `import pytest`, add `pytest>=9.0` under `[dependency-groups] dev` in `pyproject.toml` so `pyrefly` can resolve the import in `.venv`.
+4. To interactively inspect and re-run surviving mutants after `make all` (or `make mutate`), use:
+   ```sh
+   uv run --with mutmut --with pytest --with pytest-socket mutmut browse
+   ```
+
+5. If your tests `import pytest`, add `pytest>=9.0` under `[dependency-groups] dev` in `pyproject.toml` so `pyrefly` can resolve the import in `.venv`.
 
 ## License
 
