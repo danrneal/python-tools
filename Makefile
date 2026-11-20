@@ -1,6 +1,15 @@
 .PHONY: all fast update lint typecheck test mutate clean
 
 PYTHON_VERSION ?=
+PYTEST_SHARED_FLAGS := \
+	--allow-hosts=127.0.0.1,::1,localhost \
+	--allow-unix-socket \
+	--disable-socket \
+	--import-mode=importlib \
+	--strict \
+	-W error \
+	-o empty_parameter_set_mark=fail_at_collect \
+	-o tmp_path_retention_policy=failed
 
 all: update lint typecheck test mutate clean
 
@@ -10,8 +19,6 @@ update:
 	@echo "==> Updating tooling configurations from danrneal/python-tools..."
 	curl -sSfL -z ruff.toml https://raw.githubusercontent.com/danrneal/python-tools/main/ruff.toml -o ruff.toml
 	curl -sSfL -z pyrefly.toml https://raw.githubusercontent.com/danrneal/python-tools/main/pyrefly.toml -o pyrefly.toml
-	curl -sSfL -z pytest.toml https://raw.githubusercontent.com/danrneal/python-tools/main/pytest.toml -o pytest.toml
-	curl -sSfL -z .coveragerc.toml https://raw.githubusercontent.com/danrneal/python-tools/main/.coveragerc.toml -o .coveragerc.toml
 	curl -sSfL -z setup.cfg https://raw.githubusercontent.com/danrneal/python-tools/main/setup.cfg -o setup.cfg
 	curl -sSfL -z Makefile https://raw.githubusercontent.com/danrneal/python-tools/main/Makefile -o Makefile
 	@echo "==> Installing latest CLI tools..."
@@ -61,12 +68,13 @@ test:
 			--with pytest-timeout \
 			--with pytest-xdist \
 			pytest \
+				$(PYTEST_SHARED_FLAGS) \
 				-n auto \
+				-ra \
 				--timeout=60 \
-				--disable-socket \
-				--allow-unix-socket \
-				--allow-hosts=127.0.0.1,::1,localhost \
+				--ignore=mutants \
 				--cov=. \
+				--cov-branch \
 				--cov-report=term-missing \
 				--cov-report=xml \
 				--cov-report=html:$(HOME)/Downloads/htmlcov; \
@@ -85,7 +93,7 @@ test:
 mutate:
 	@if [ -f pyproject.toml ]; then \
 		echo "==> Running mutmut..."; \
-		uv run \
+		PYTEST_ADDOPTS="$(PYTEST_SHARED_FLAGS)" uv run \
 			--with mutmut \
 			--with pytest \
 			--with pytest-socket \

@@ -1,6 +1,5 @@
 min-severity = "warn"
 preset = "strict"
-project-excludes = ["mutants"]
 
 [errors]
 empty-body = "error"
